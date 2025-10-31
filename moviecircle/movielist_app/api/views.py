@@ -1,9 +1,82 @@
-from rest_framework import status
-from rest_framework.response import Response 
+from rest_framework import status, generics, mixins, viewsets
+from rest_framework.response import Response
+from django.shortcuts import get_object_or_404 
 # from rest_framework.decorators import api_view
 from rest_framework.views import APIView
-from movielist_app.models import CollectionList, StreamPlatform
-from .serializers import CollectionListSerializer, StreamPlatformSerializer
+from movielist_app.models import CollectionList, StreamPlatform, Review
+from .serializers import CollectionListSerializer, StreamPlatformSerializer,ReviewSerializer
+
+
+class ReviewCreate(generics.CreateAPIView):
+    serializer_class = ReviewSerializer
+    
+    def perform_create(self, serializer):
+        pk = self.kwargs.get('pk')
+        movie = CollectionList.objects.get(pk=pk)
+        
+        serializer.save(collectionlist=movie) 
+
+class ReviewList(generics.ListCreateAPIView):
+    serializer_class = ReviewSerializer
+    def get_queryset(self):
+        pk = self.kwargs['pk']
+        return Review.objects.filter(collectionlist=pk)
+
+
+class ReviewDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+
+# # Implemented using Generic views and mixins
+# class ReviewDetail(mixins.RetrieveModelMixin, generics.GenericAPIView):
+#     queryset =Review.objects.all()
+#     serializer_class = ReviewSerializer
+    
+#     def get(self, request,*args, **kwargs):
+#         return self.retrieve(request, *args, **kwargs)
+
+
+# class ReviewList(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+#     queryset = Review.objects.all()
+#     serializer_class = ReviewSerializer
+    
+    
+#     def get(self, request,*args, **kwargs):
+#         return self.list(request, *args, **kwargs)
+#     def post(self, request, *args, **kwargs):
+#         return self.create(request, *args, **kwargs)
+
+
+# # Using ViewSets.viewset
+# class StreamListVS(viewsets.ViewSet):
+#     def list(self, request):
+#         queryset = StreamPlatform.objects.all()
+#         serializer = StreamPlatformSerializer(queryset, many=True)
+#         return Response(serializer.data)
+
+#     def retrieve(self, request, pk=None):
+#         queryset = StreamPlatform.objects.all()
+#         collectionlist = get_object_or_404(queryset, pk=pk)
+#         serializer = StreamPlatformSerializer(collectionlist)
+#         return Response(serializer.data)
+    
+#     def create(self, request):
+#         serializer = StreamPlatformSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response(serializer.data)
+#         else:
+#             return Response(serializer.errors)
+#     def delete(self, request, pk):
+#         platform = StreamPlatform.objects.get(pk=pk)
+#         platform.deleteK()
+#         return Response({"Congrats": "Deleted Succesfully"})
+    
+# Using Model viewsets
+class StreamListVS(viewsets.ModelViewSet):
+    queryset = StreamPlatform.objects.all()
+    serializer_class = StreamPlatformSerializer
+
 
 
 class StreamListAV(APIView):

@@ -1,25 +1,36 @@
 from rest_framework import serializers
-from movielist_app.models import CollectionList, StreamPlatform
+from movielist_app.models import CollectionList, StreamPlatform, Review
 
-
-
-class StreamPlatformSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = StreamPlatform
-        fields = "__all__"               
-                
+class ReviewSerializer(serializers.ModelSerializer):
+              class Meta:
+                  model = Review
+                  exclude = ('collectionlist',)
+                #   fields = "__all__"
+                  
                 
                 
 # Using Model Serializers
 class CollectionListSerializer(serializers.ModelSerializer):
     # len_name = serializers.SerializerMethodField()
-    
+    reviews = ReviewSerializer(many = True, read_only=True)
     
     class Meta:
         model = CollectionList
         fields = "__all__"
                 
 
+class StreamPlatformSerializer(serializers.ModelSerializer):
+    collectionlist = CollectionListSerializer(many = True, read_only = True)
+    # collectionlist = serializers.StringRelatedField(many=True)
+    # collectionlist = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+    # collectionlist = serializers.HyperlinkedRelatedField(many=True, read_only =True, view_name ='movie-details')
+    class Meta:
+        model = StreamPlatform
+        fields = "__all__"     
+        
+        
+        
+        
 # #Validations
 #     def get_len_name(self, object):
 #         length = len(object.name)
